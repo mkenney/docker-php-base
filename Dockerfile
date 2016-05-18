@@ -55,6 +55,8 @@ ENV LC_ALL C.UTF-8
 ##############################################################################
 
 RUN apt-get install -q -y \
+    curl \
+    git \
     less \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
@@ -62,9 +64,9 @@ RUN apt-get install -q -y \
     libpng12-dev \
     libbz2-dev \
     php-pear \
-    curl \
-    git \
-    subversion \
+    powerline \
+    python-powerline \
+    sudo \
     unzip \
     wget
 
@@ -109,13 +111,9 @@ ENV PHP_INI_DIR '/usr/local/etc/php/conf.d'
 ENV server_env dev
 
 # Extensions and ini settings
-RUN curl -L http://pecl.php.net/get/xdebug-2.4.0RC2.tgz > /usr/src/php/ext/xdebug.tgz \
-    && tar -xf /usr/src/php/ext/xdebug.tgz -C /usr/src/php/ext/ \
-    && rm /usr/src/php/ext/xdebug.tgz \
-    && docker-php-ext-configure oci8 --with-oci8=instantclient,/usr/lib/oracle/${ORACLE_VERSION_SHORT}/client64/lib \
+RUN docker-php-ext-configure oci8 --with-oci8=instantclient,/usr/lib/oracle/${ORACLE_VERSION_SHORT}/client64/lib \
     && docker-php-ext-install \
         oci8 \
-        xdebug-2.4.0RC2 \
         pcntl \
         zip \
         bz2 \
@@ -130,10 +128,55 @@ RUN curl -L http://pecl.php.net/get/xdebug-2.4.0RC2.tgz > /usr/src/php/ext/xdebu
     && echo "error_log=syslog"              > $PHP_INI_DIR/error_log.ini \
     && php -m
 
-RUN apt-get clean && rm -r /var/lib/apt/lists/*
+##############################################################################
+# users
+##############################################################################
+
+# Configure root account
+RUN cd /root/src \
+    && rsync -ac /container/powerline/ /usr/share/powerline/ \
+    && cd /root/ \
+    && rsync -ac /container/dotfiles/.bash/     /root/.bash/ \
+    && cp /container/dotfiles/.bash_profile     /root/.bash_profile \
+    && cp /container/dotfiles/.bashrc           /root/.bashrc \
+    && cp /container/dotfiles/.gitconfig        /root/.gitconfig \
+    && cp /container/dotfiles/.gitignore_global /root/.gitignore_global \
+    && cp /container/dotfiles/.vimrc            /root/.vimrc \
+    && cp /container/dotfiles/.vimdiff_wrapper  /root/.vimdiff_wrapper \
+    && cp /container/dotfiles/.tmux.conf        /root/.tmux.conf \
+    && echo "export ORACLE_HOME=$(echo $ORACLE_HOME)"          >> /root/.bash_profile \
+    && echo "export LD_LIBRARY_PATH=$(echo $LD_LIBRARY_PATH)"  >> /root/.bash_profile \
+    && echo "export TNS_ADMIN=$(echo $TNS_ADMIN)"              >> /root/.bash_profile \
+    && echo "export CFLAGS=$(echo $CFLAGS)"                    >> /root/.bash_profile \
+    && echo "export NLS_LANG=$(echo $NLS_LANG)"                >> /root/.bash_profile \
+    && echo "export LANG=$(echo $LANG)"                        >> /root/.bash_profile \
+    && echo "export LANGUAGE=$(echo $LANGUAGE)"                >> /root/.bash_profile \
+    && echo "export LC_ALL=$(echo $LC_ALL)"                    >> /root/.bash_profile \
+    && echo "export TERM=xterm"                                >> /root/.bash_profile \
+    && echo "export PATH=$(echo $PATH)"                        >> /root/.bash_profile
+
+# Add a dev user and configure all accounts
+RUN groupadd dev \
+    && useradd dev -s /bin/bash -m -g dev -G root \
+    && echo "dev:password" | chpasswd \
+    && echo "dev ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers \
+    && rsync -a /root/ /home/dev/ \
+    && rsync -a /root/ /home/oracle/ \
+    && chown -R dev:dev /home/dev/ \
+    && chmod 0777 /home/dev
+
+
+##############################################################################
+# ~ fin ~
+##############################################################################
+
+RUN apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && cp /container/as-user / \
+    && rm -rf /container
 
 # Set up the application directory
 VOLUME ["/src"]
 WORKDIR /src
 
-ENTRYPOINT ["php"]
+ENTRYPOINT ["as-user","php"]
