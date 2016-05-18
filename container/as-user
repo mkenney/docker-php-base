@@ -1,14 +1,15 @@
 #!/bin/bash
 
 ##############################################################################
-# "become" the user that owns the project directory
+# change the dev user's uid and gid to match the user that owns the project 
+# directory and run a command as that user
 #
 # do this in this order. sudo will stop working for the rest of the
 # session after executing usermod
 ##############################################################################
 
-sudo groupmod -g $(stat -c '%g' $PROJECT_PATH) -o dev > /dev/null 2>&1
-sudo chgrp dev ~dev/
-sudo usermod -u $(stat -c '%u' $PROJECT_PATH) -o dev > /dev/null 2>&1
+groupmod -g $(stat -c '%g' /src) -o dev > /dev/null 2>&1
+usermod -u $(stat -c '%u' /src) -o dev > /dev/null 2>&1
+chown -R dev:dev ~dev/
 
-/usr/local/bin/composer
+sudo -u dev $@
