@@ -1,11 +1,8 @@
 #!/bin/bash
 
 ##############################################################################
-# change the dev user's uid and gid to match the user that owns the project 
+# change the dev user's uid and gid to match the user that owns the project
 # directory and run a command as that user
-#
-# do this in this order. sudo will stop working for the rest of the
-# session after executing usermod
 ##############################################################################
 
 groupmod -g $(stat -c '%g' /src) -o dev > /dev/null 2>&1
