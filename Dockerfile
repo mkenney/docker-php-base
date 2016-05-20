@@ -76,7 +76,6 @@ RUN apt-get install -q -y \
 
 COPY container /container
 
-# https://sourceforge.net/projects/cloc/
 # Oracle instantclient debs created using `alien`
 RUN cp /container/oracle-instantclient${ORACLE_VERSION_SHORT}-basic_${ORACLE_VERSION_LONG}_amd64.deb /root/src/ \
     && cp /container/oracle-instantclient${ORACLE_VERSION_SHORT}-devel_${ORACLE_VERSION_LONG}_amd64.deb /root/src/ \
@@ -110,22 +109,58 @@ ENV PHP_INI_DIR '/usr/local/etc/php/conf.d'
 # server_env
 ENV server_env dev
 
-# Extensions and ini settings
+# Packages
+#
+# * libaio1 is required for oci8 *
+RUN apt-get install -q -y \
+    libaio1 \
+    libicu-dev \
+    libxml2-dev \
+    php5-memcached \
+    php5-redis
+
+# Configure and install oci8
+# Don't poke it or it'll break
+RUN cd /root/src \
+    && curl -L http://pecl.php.net/get/xdebug-2.4.0RC2.tgz > /usr/src/php/ext/xdebug.tgz \
+    && tar -xf /usr/src/php/ext/xdebug.tgz -C /usr/src/php/ext/ \
+    && rm /usr/src/php/ext/xdebug.tgz \
+    && cp /usr/include/oracle/${ORACLE_VERSION_SHORT}/client64/* /oracle/product/latest/ \
+    && cd /oracle/product/latest \
+    && ln -s lib/libnnz11.so       libnnz.so \
+    && ln -s lib/libnnz11.so       libnnz11.so \
+    && ln -s lib/libclntsh.so.11.1 libclntsh.so \
+    && ln -s lib/libclntsh.so.11.1 libclntsh.so.11.1 \
+    && echo "instantclient,/oracle/product/latest" | pecl install oci8-2.1.1.tgz \
+    && echo "extension=oci8.so" > $PHP_INI_DIR/oci8.ini
+
+# Extensions
 RUN curl -L http://pecl.php.net/get/xdebug-2.4.0RC2.tgz > /usr/src/php/ext/xdebug.tgz \
     && tar -xf /usr/src/php/ext/xdebug.tgz -C /usr/src/php/ext/ \
     && rm /usr/src/php/ext/xdebug.tgz \
-    && docker-php-ext-configure oci8 --with-oci8=instantclient,/usr/lib/oracle/${ORACLE_VERSION_SHORT}/client64/lib \
-    && docker-php-ext-install oci8 \
-    && docker-php-ext-install xdebug-2.4.0RC2 \
-    && docker-php-ext-install pcntl \
-    && php -m \
-    && echo "memory_limit=-1"               > $PHP_INI_DIR/memory_limit.ini \
+    && docker-php-ext-install \
+        gd \
+        iconv \
+        intl \
+        mbstring \
+        mcrypt \
+        mysqli \
+        pdo_mysql \
+        pcntl \
+        soap \
+        sockets \
+        xdebug-2.4.0RC2 \
+        zip \
+    && php -m
+
+# INI settings
+RUN echo "memory_limit=-1"               > $PHP_INI_DIR/memory_limit.ini \
     && echo "date.timezone=${TIMEZONE}"     > $PHP_INI_DIR/date_timezone.ini \
     && echo "error_reporting=E_ALL"         > $PHP_INI_DIR/error_reporting.ini \
     && echo "display_errors=On"             > $PHP_INI_DIR/display_errors.ini \
     && echo "log_errors=On"                 > $PHP_INI_DIR/log_errors.ini \
     && echo "report_memleaks=On"            > $PHP_INI_DIR/report_memleaks.ini \
-    && echo "error_log=syslog"              > $PHP_INI_DIR/error_log.ini
+    && echo "error_log=syslog"              > $PHP_INI_DIR/error_log.ini \
 
 ##############################################################################
 # users
