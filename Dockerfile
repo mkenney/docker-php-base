@@ -51,8 +51,11 @@ ENV LANGUAGE C.UTF-8
 ENV LC_ALL C.UTF-8
 
 ##############################################################################
-# Packages
+# Packages / dependencies
 ##############################################################################
+
+# Contains dotfiles, Oracle instantclient debs, as-user script
+COPY container /container
 
 RUN apt-get install -q -y \
     curl \
@@ -63,18 +66,9 @@ RUN apt-get install -q -y \
     libmcrypt-dev \
     libpng12-dev \
     libbz2-dev \
-    powerline \
     sudo \
     unzip \
     wget
-
-##############################################################################
-# Dependencies
-##############################################################################
-
-# Includes dotfiles, powerline configs and Oracle instantclient debs created
-# using `alien`
-COPY container /container
 
 ##############################################################################
 # Oracle instantclient
@@ -96,14 +90,12 @@ RUN groupadd dba \
 ##############################################################################
 
 # INI directory
-ENV PHP_INI_DIR '/usr/local/etc/php/conf.d'
-
-# server_env
-ENV server_env dev
+ENV PHP_INI_DIR /usr/local/etc/php/conf.d
 
 # Packages
-#
-# * libaio1 is required for oci8 *
+# - libaio1 is required for oci8
+# - libicu-dev is required for intl
+# - libxml2-dev is required for soap
 RUN apt-get install -q -y \
     libaio1 \
     libicu-dev \
@@ -114,8 +106,7 @@ RUN apt-get install -q -y \
 
 # Configure and install oci8
 # Don't poke it or it'll break
-RUN cd /root/src \
-    && cp /usr/include/oracle/${ORACLE_VERSION_SHORT}/client64/* /oracle/product/latest/ \
+RUN cp /usr/include/oracle/${ORACLE_VERSION_SHORT}/client64/* /oracle/product/latest/ \
     && cd /oracle/product/latest \
     && ln -s lib/libnnz11.so       libnnz.so \
     && ln -s lib/libnnz11.so       libnnz11.so \
@@ -144,30 +135,20 @@ RUN curl -L http://pecl.php.net/get/xdebug-2.4.0RC2.tgz > /usr/src/php/ext/xdebu
     && php -m
 
 # INI settings
-RUN echo "memory_limit=-1"               > $PHP_INI_DIR/memory_limit.ini \
-    && echo "date.timezone=${TIMEZONE}"     > $PHP_INI_DIR/date_timezone.ini \
-    && echo "error_reporting=E_ALL"         > $PHP_INI_DIR/error_reporting.ini \
-    && echo "display_errors=On"             > $PHP_INI_DIR/display_errors.ini \
-    && echo "log_errors=On"                 > $PHP_INI_DIR/log_errors.ini \
-    && echo "report_memleaks=On"            > $PHP_INI_DIR/report_memleaks.ini \
-    && echo "error_log=syslog"              > $PHP_INI_DIR/error_log.ini \
+RUN echo "memory_limit=-1"              > $PHP_INI_DIR/memory_limit.ini \
+    && echo "date.timezone=${TIMEZONE}" > $PHP_INI_DIR/date_timezone.ini \
+    && echo "error_reporting=E_ALL"     > $PHP_INI_DIR/error_reporting.ini \
+    && echo "display_errors=On"         > $PHP_INI_DIR/display_errors.ini \
+    && echo "log_errors=On"             > $PHP_INI_DIR/log_errors.ini \
+    && echo "report_memleaks=On"        > $PHP_INI_DIR/report_memleaks.ini \
+    && echo "error_log=syslog"          > $PHP_INI_DIR/error_log.ini
 
 ##############################################################################
 # users
 ##############################################################################
 
 # Configure root account
-RUN cd /root/src \
-    && rsync -ac /container/powerline/ /usr/share/powerline/ \
-    && cd /root/ \
-    && rsync -ac /container/dotfiles/.bash/     /root/.bash/ \
-    && cp /container/dotfiles/.bash_profile     /root/.bash_profile \
-    && cp /container/dotfiles/.bashrc           /root/.bashrc \
-    && cp /container/dotfiles/.gitconfig        /root/.gitconfig \
-    && cp /container/dotfiles/.gitignore_global /root/.gitignore_global \
-    && cp /container/dotfiles/.vimrc            /root/.vimrc \
-    && cp /container/dotfiles/.vimdiff_wrapper  /root/.vimdiff_wrapper \
-    && cp /container/dotfiles/.tmux.conf        /root/.tmux.conf \
+RUN rsync -ac /container/dotfiles/     /root/ \
     && echo "export ORACLE_HOME=$(echo $ORACLE_HOME)"          >> /root/.bash_profile \
     && echo "export LD_LIBRARY_PATH=$(echo $LD_LIBRARY_PATH)"  >> /root/.bash_profile \
     && echo "export TNS_ADMIN=$(echo $TNS_ADMIN)"              >> /root/.bash_profile \
@@ -198,6 +179,9 @@ RUN apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && cp /container/as-user / \
     && rm -rf /container
+
+# server_env
+ENV server_env dev
 
 # Set up the application directory
 VOLUME ["/src"]
