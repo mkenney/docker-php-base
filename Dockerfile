@@ -213,4 +213,4 @@ RUN apt-get clean \
 VOLUME ["/src"]
 WORKDIR /src
 
-ENTRYPOINT ["as-user","php"]
+ENTRYPOINT ["/as-user","php"]
