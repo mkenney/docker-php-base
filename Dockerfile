@@ -111,22 +111,21 @@ ENV PHP_INI_DIR '/usr/local/etc/php/conf.d'
 ENV server_env dev
 
 # Extensions and ini settings
-RUN docker-php-ext-configure oci8 --with-oci8=instantclient,/usr/lib/oracle/${ORACLE_VERSION_SHORT}/client64/lib \
-    && docker-php-ext-install \
-        oci8 \
-        pcntl \
-        zip \
-        bz2 \
-        mbstring \
-        mcrypt \
+RUN curl -L http://pecl.php.net/get/xdebug-2.4.0RC2.tgz > /usr/src/php/ext/xdebug.tgz \
+    && tar -xf /usr/src/php/ext/xdebug.tgz -C /usr/src/php/ext/ \
+    && rm /usr/src/php/ext/xdebug.tgz \
+    && docker-php-ext-configure oci8 --with-oci8=instantclient,/usr/lib/oracle/${ORACLE_VERSION_SHORT}/client64/lib \
+    && docker-php-ext-install oci8 \
+    && docker-php-ext-install xdebug-2.4.0RC2 \
+    && docker-php-ext-install pcntl \
+    && php -m \
     && echo "memory_limit=-1"               > $PHP_INI_DIR/memory_limit.ini \
     && echo "date.timezone=${TIMEZONE}"     > $PHP_INI_DIR/date_timezone.ini \
     && echo "error_reporting=E_ALL"         > $PHP_INI_DIR/error_reporting.ini \
     && echo "display_errors=On"             > $PHP_INI_DIR/display_errors.ini \
     && echo "log_errors=On"                 > $PHP_INI_DIR/log_errors.ini \
     && echo "report_memleaks=On"            > $PHP_INI_DIR/report_memleaks.ini \
-    && echo "error_log=syslog"              > $PHP_INI_DIR/error_log.ini \
-    && php -m
+    && echo "error_log=syslog"              > $PHP_INI_DIR/error_log.ini
 
 ##############################################################################
 # users
