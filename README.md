@@ -1,4 +1,4 @@
-# SOURCE REPOSITORY
+# Source repository
 
 * [mkenney/docker-php-base](https://github.com/mkenney/docker-php-base)
 
