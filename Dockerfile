@@ -131,7 +131,7 @@ RUN cd /root/src \
     && ln -s lib/libnnz11.so       libnnz11.so \
     && ln -s lib/libclntsh.so.11.1 libclntsh.so \
     && ln -s lib/libclntsh.so.11.1 libclntsh.so.11.1 \
-    && echo "instantclient,/oracle/product/latest" | pecl install oci8-2.1.1.tgz \
+    && echo "instantclient,/oracle/product/latest" | pecl install oci8-2.0.11.tgz \
     && echo "extension=oci8.so" > $PHP_INI_DIR/oci8.ini
 
 # Extensions
