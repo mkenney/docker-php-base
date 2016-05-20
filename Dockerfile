@@ -63,9 +63,7 @@ RUN apt-get install -q -y \
     libmcrypt-dev \
     libpng12-dev \
     libbz2-dev \
-    php-pear \
     powerline \
-    python-powerline \
     sudo \
     unzip \
     wget
@@ -74,12 +72,9 @@ RUN apt-get install -q -y \
 # Dependencies
 ##############################################################################
 
+# Includes dotfiles, powerline configs and Oracle instantclient debs created
+# using `alien`
 COPY container /container
-
-# Oracle instantclient debs created using `alien`
-RUN cp /container/oracle-instantclient${ORACLE_VERSION_SHORT}-basic_${ORACLE_VERSION_LONG}_amd64.deb /root/src/ \
-    && cp /container/oracle-instantclient${ORACLE_VERSION_SHORT}-devel_${ORACLE_VERSION_LONG}_amd64.deb /root/src/ \
-    && cp /container/oracle-instantclient${ORACLE_VERSION_SHORT}-sqlplus_${ORACLE_VERSION_LONG}_amd64.deb /root/src/
 
 ##############################################################################
 # Oracle instantclient
@@ -88,16 +83,13 @@ RUN cp /container/oracle-instantclient${ORACLE_VERSION_SHORT}-basic_${ORACLE_VER
 RUN groupadd dba \
     && useradd oracle -s /bin/bash -m -g dba \
     && echo "oracle:password" | chpasswd \
-    && cd /root/src \
+    && cd /container \
     && dpkg -i oracle-instantclient${ORACLE_VERSION_SHORT}-basic_${ORACLE_VERSION_LONG}_amd64.deb \
     && dpkg -i oracle-instantclient${ORACLE_VERSION_SHORT}-devel_${ORACLE_VERSION_LONG}_amd64.deb \
     && dpkg -i oracle-instantclient${ORACLE_VERSION_SHORT}-sqlplus_${ORACLE_VERSION_LONG}_amd64.deb \
     && mkdir -p /oracle/product \
     && ln -s $ORACLE_HOME /oracle/product/latest \
-    && mkdir -p /oracle/product/latest/network/admin \
-    && rm -f /root/src/oracle-instantclient${ORACLE_VERSION_SHORT}-basic_${ORACLE_VERSION_LONG}_amd64.deb \
-    && rm -f /root/src/oracle-instantclient${ORACLE_VERSION_SHORT}-devel_${ORACLE_VERSION_LONG}_amd64.deb \
-    && rm -f /root/src/oracle-instantclient${ORACLE_VERSION_SHORT}-sqlplus_${ORACLE_VERSION_LONG}_amd64.deb
+    && mkdir -p /oracle/product/latest/network/admin
 
 ##############################################################################
 # PHP
@@ -116,15 +108,13 @@ RUN apt-get install -q -y \
     libaio1 \
     libicu-dev \
     libxml2-dev \
+    php-pear \
     php5-memcached \
     php5-redis
 
 # Configure and install oci8
 # Don't poke it or it'll break
 RUN cd /root/src \
-    && curl -L http://pecl.php.net/get/xdebug-2.4.0RC2.tgz > /usr/src/php/ext/xdebug.tgz \
-    && tar -xf /usr/src/php/ext/xdebug.tgz -C /usr/src/php/ext/ \
-    && rm /usr/src/php/ext/xdebug.tgz \
     && cp /usr/include/oracle/${ORACLE_VERSION_SHORT}/client64/* /oracle/product/latest/ \
     && cd /oracle/product/latest \
     && ln -s lib/libnnz11.so       libnnz.so \
