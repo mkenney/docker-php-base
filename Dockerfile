@@ -44,11 +44,13 @@ ENV LC_ALL C.UTF-8
 # Includes dotfiles and Oracle instantclient debs created using `alien`
 COPY container /container
 
+# Begin build
+RUN set -x \
+
 ##############################################################################
 # Upgrade
 ##############################################################################
 
-RUN set -x \
     && mkdir -p /root/src \
     && apt-get -qq update \
     && apt-get install -qqy apt-utils \
@@ -180,7 +182,7 @@ RUN set -x \
     && echo "export TERM=xterm"                                >> /root/.bash_profile \
     && echo "export PATH=$(echo $PATH)"                        >> /root/.bash_profile \
 
-# Add a dev user and configure all accounts
+    # Add a dev user and configure all accounts
     && groupadd dev \
     && useradd dev -s /bin/bash -m -g dev -G root \
     && echo "dev:password" | chpasswd \
