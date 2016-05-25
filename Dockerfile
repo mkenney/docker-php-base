@@ -9,21 +9,22 @@ MAINTAINER Michael Kenney <mkenney@webbedlam.com>
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM xterm
 USER root
-RUN mkdir -p /root/src \
-    && apt-get -qq update \
-    && apt-get install -qqy apt-utils \
-    && apt-get -qq upgrade \
-    && apt-get -qq dist-upgrade
+
+# server_env
+ENV server_env dev
+
+# Set up the application directory
+VOLUME ["/src"]
+WORKDIR /src
 
 ##############################################################################
-# Configurations
+# Configurations / dependencies
 ##############################################################################
 
 ENV PATH /root/bin:$PATH
 
 ENV UTF8_LOCALE en_US
 ENV TIMEZONE 'America/Denver'
-
 ENV ORACLE_VERSION_LONG 11.2.0.3.0-2
 ENV ORACLE_VERSION_SHORT 11.2
 ENV ORACLE_HOME /usr/lib/oracle/${ORACLE_VERSION_SHORT}/client64
@@ -32,11 +33,33 @@ ENV TNS_ADMIN /home/dev/.oracle/network/admin
 ENV CFLAGS "-I/usr/include/oracle/${ORACLE_VERSION_SHORT}/client64/"
 ENV NLS_LANG American_America.AL32UTF8
 
+# PHP ini directory
+ENV PHP_INI_DIR /usr/local/etc/php/conf.d
+
+# Locale environment variables
+ENV LANG C.UTF-8
+ENV LANGUAGE C.UTF-8
+ENV LC_ALL C.UTF-8
+
+# Includes dotfiles and Oracle instantclient debs created using `alien`
+COPY container /container
+
+##############################################################################
+# Upgrade
+##############################################################################
+
+RUN set -x \
+    && mkdir -p /root/src \
+    && apt-get -qq update \
+    && apt-get install -qqy apt-utils \
+    && apt-get -qq upgrade \
+    && apt-get -qq dist-upgrade \
+
 ##############################################################################
 # UTF-8 Locale, timezone
 ##############################################################################
 
-RUN apt-get install -qqy locales \
+    && apt-get install -qqy locales \
     && locale-gen C.UTF-8 ${UTF8_LOCALE} \
     && dpkg-reconfigure locales \
     && /usr/sbin/update-locale LANG=C.UTF-8 LANGUAGE=C.UTF-8 LC_ALL=C.UTF-8 \
@@ -44,37 +67,31 @@ RUN apt-get install -qqy locales \
     && export LANGUAGE=C.UTF-8 \
     && export LC_ALL=C.UTF-8 \
     && echo ${TIMEZONE} > /etc/timezone \
-    && dpkg-reconfigure -f noninteractive tzdata
-
-ENV LANG C.UTF-8
-ENV LANGUAGE C.UTF-8
-ENV LC_ALL C.UTF-8
+    && dpkg-reconfigure -f noninteractive tzdata \
 
 ##############################################################################
-# Packages / dependencies
+# Packages
 ##############################################################################
 
-# Contains dotfiles, Oracle instantclient debs, as-user script
-COPY container /container
-
-RUN apt-get install -q -y \
-    curl \
-    git \
-    less \
-    libfreetype6-dev \
-    libjpeg62-turbo-dev \
-    libmcrypt-dev \
-    libpng12-dev \
-    libbz2-dev \
-    sudo \
-    unzip \
-    wget
+    && apt-get install -qqy \
+        curl \
+        git \
+        less \
+        libfreetype6-dev \
+        libjpeg62-turbo-dev \
+        libmcrypt-dev \
+        libpng12-dev \
+        libbz2-dev \
+        rsync \
+        sudo \
+        unzip \
+        wget \
 
 ##############################################################################
 # Oracle instantclient
 ##############################################################################
 
-RUN groupadd dba \
+    && groupadd dba \
     && useradd oracle -s /bin/bash -m -g dba \
     && echo "oracle:password" | chpasswd \
     && cd /container \
@@ -83,40 +100,37 @@ RUN groupadd dba \
     && dpkg -i oracle-instantclient${ORACLE_VERSION_SHORT}-sqlplus_${ORACLE_VERSION_LONG}_amd64.deb \
     && mkdir -p /oracle/product \
     && ln -s $ORACLE_HOME /oracle/product/latest \
-    && mkdir -p /oracle/product/latest/network/admin
+    && mkdir -p /oracle/product/latest/network/admin \
 
 ##############################################################################
 # PHP
 ##############################################################################
 
-# INI directory
-ENV PHP_INI_DIR /usr/local/etc/php/conf.d
+    # Packages
+    # - libaio1 is required for oci8
+    # - libicu-dev is required for intl
+    # - libxml2-dev is required for soap
+    && apt-get install -qqy \
+        libaio1 \
+        libicu-dev \
+        libxml2-dev \
+        php-pear \
+        php5-memcached \
+        php5-redis \
 
-# Packages
-# - libaio1 is required for oci8
-# - libicu-dev is required for intl
-# - libxml2-dev is required for soap
-RUN apt-get install -q -y \
-    libaio1 \
-    libicu-dev \
-    libxml2-dev \
-    php-pear \
-    php5-memcached \
-    php5-redis
-
-# Configure and install oci8
-# Don't poke it or it'll break
-RUN cp /usr/include/oracle/${ORACLE_VERSION_SHORT}/client64/* /oracle/product/latest/ \
+    # Configure and install oci8
+    # Don't poke it or it'll break
+    && cp /usr/include/oracle/${ORACLE_VERSION_SHORT}/client64/* /oracle/product/latest/ \
     && cd /oracle/product/latest \
     && ln -s lib/libnnz11.so       libnnz.so \
     && ln -s lib/libnnz11.so       libnnz11.so \
     && ln -s lib/libclntsh.so.11.1 libclntsh.so \
     && ln -s lib/libclntsh.so.11.1 libclntsh.so.11.1 \
     && echo "instantclient,/oracle/product/latest" | pecl install oci8-2.1.1.tgz \
-    && echo "extension=oci8.so" > $PHP_INI_DIR/oci8.ini
+    && echo "extension=oci8.so" > $PHP_INI_DIR/oci8.ini \
 
-# Extensions
-RUN curl -L http://pecl.php.net/get/xdebug-2.4.0RC2.tgz > /usr/src/php/ext/xdebug.tgz \
+    # Extensions
+    && curl -L http://pecl.php.net/get/xdebug-2.4.0RC2.tgz > /usr/src/php/ext/xdebug.tgz \
     && tar -xf /usr/src/php/ext/xdebug.tgz -C /usr/src/php/ext/ \
     && rm /usr/src/php/ext/xdebug.tgz \
     && docker-php-ext-install \
@@ -132,23 +146,29 @@ RUN curl -L http://pecl.php.net/get/xdebug-2.4.0RC2.tgz > /usr/src/php/ext/xdebu
         sockets \
         xdebug-2.4.0RC2 \
         zip \
-    && php -m
 
-# INI settings
-RUN echo "memory_limit=-1"              > $PHP_INI_DIR/memory_limit.ini \
+    # INI settings
+    && echo "memory_limit=-1"           > $PHP_INI_DIR/memory_limit.ini \
     && echo "date.timezone=${TIMEZONE}" > $PHP_INI_DIR/date_timezone.ini \
     && echo "error_reporting=E_ALL"     > $PHP_INI_DIR/error_reporting.ini \
     && echo "display_errors=On"         > $PHP_INI_DIR/display_errors.ini \
     && echo "log_errors=On"             > $PHP_INI_DIR/log_errors.ini \
     && echo "report_memleaks=On"        > $PHP_INI_DIR/report_memleaks.ini \
-    && echo "error_log=syslog"          > $PHP_INI_DIR/error_log.ini
+    && echo "error_log=syslog"          > $PHP_INI_DIR/error_log.ini \
 
 ##############################################################################
 # users
 ##############################################################################
 
-# Configure root account
-RUN rsync -ac /container/dotfiles/     /root/ \
+    # Configure root account
+    && rsync -ac /container/dotfiles/.bash/     /root/.bash/ \
+    && cp /container/dotfiles/.bash_profile     /root/.bash_profile \
+    && cp /container/dotfiles/.bashrc           /root/.bashrc \
+    && cp /container/dotfiles/.gitconfig        /root/.gitconfig \
+    && cp /container/dotfiles/.gitignore_global /root/.gitignore_global \
+    && cp /container/dotfiles/.vimrc            /root/.vimrc \
+    && cp /container/dotfiles/.vimdiff_wrapper  /root/.vimdiff_wrapper \
+    && cp /container/dotfiles/.tmux.conf        /root/.tmux.conf \
     && echo "export ORACLE_HOME=$(echo $ORACLE_HOME)"          >> /root/.bash_profile \
     && echo "export LD_LIBRARY_PATH=$(echo $LD_LIBRARY_PATH)"  >> /root/.bash_profile \
     && echo "export TNS_ADMIN=$(echo $TNS_ADMIN)"              >> /root/.bash_profile \
@@ -158,33 +178,26 @@ RUN rsync -ac /container/dotfiles/     /root/ \
     && echo "export LANGUAGE=$(echo $LANGUAGE)"                >> /root/.bash_profile \
     && echo "export LC_ALL=$(echo $LC_ALL)"                    >> /root/.bash_profile \
     && echo "export TERM=xterm"                                >> /root/.bash_profile \
-    && echo "export PATH=$(echo $PATH)"                        >> /root/.bash_profile
+    && echo "export PATH=$(echo $PATH)"                        >> /root/.bash_profile \
 
 # Add a dev user and configure all accounts
-RUN groupadd dev \
+    && groupadd dev \
     && useradd dev -s /bin/bash -m -g dev -G root \
     && echo "dev:password" | chpasswd \
     && echo "dev ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers \
     && rsync -a /root/ /home/dev/ \
     && rsync -a /root/ /home/oracle/ \
     && chown -R dev:dev /home/dev/ \
-    && chmod 0777 /home/dev
+    && chmod 0777 /home/dev \
 
 
 ##############################################################################
 # ~ fin ~
 ##############################################################################
 
-RUN apt-get clean \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && cp /container/as-user / \
     && rm -rf /container
-
-# server_env
-ENV server_env dev
-
-# Set up the application directory
-VOLUME ["/src"]
-WORKDIR /src
 
 ENTRYPOINT ["/as-user","php"]
