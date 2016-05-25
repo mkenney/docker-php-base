@@ -127,7 +127,7 @@ RUN set -x \
     && ln -s lib/libclntsh.so.11.1 libclntsh.so \
     && ln -s lib/libclntsh.so.11.1 libclntsh.so.11.1 \
     && echo "instantclient,/oracle/product/latest" | pecl install oci8-2.0.11.tgz \
-    && echo "extension=oci8.so" > $PHP_INI_DIR/oci8.ini
+    && echo "extension=oci8.so" > $PHP_INI_DIR/oci8.ini \
 
     # Extensions
     && curl -L http://pecl.php.net/get/xdebug-2.4.0RC2.tgz > /usr/src/php/ext/xdebug.tgz \
