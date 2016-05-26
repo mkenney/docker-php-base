@@ -163,14 +163,7 @@ RUN set -x \
 ##############################################################################
 
     # Configure root account
-    && rsync -ac /container/dotfiles/.bash/     /root/.bash/ \
-    && cp /container/dotfiles/.bash_profile     /root/.bash_profile \
-    && cp /container/dotfiles/.bashrc           /root/.bashrc \
-    && cp /container/dotfiles/.gitconfig        /root/.gitconfig \
-    && cp /container/dotfiles/.gitignore_global /root/.gitignore_global \
-    && cp /container/dotfiles/.vimrc            /root/.vimrc \
-    && cp /container/dotfiles/.vimdiff_wrapper  /root/.vimdiff_wrapper \
-    && cp /container/dotfiles/.tmux.conf        /root/.tmux.conf \
+    && rsync -ac /container/dotfiles/ /root/ \
     && echo "export ORACLE_HOME=$(echo $ORACLE_HOME)"          >> /root/.bash_profile \
     && echo "export LD_LIBRARY_PATH=$(echo $LD_LIBRARY_PATH)"  >> /root/.bash_profile \
     && echo "export TNS_ADMIN=$(echo $TNS_ADMIN)"              >> /root/.bash_profile \
@@ -182,7 +175,7 @@ RUN set -x \
     && echo "export TERM=xterm"                                >> /root/.bash_profile \
     && echo "export PATH=$(echo $PATH)"                        >> /root/.bash_profile \
 
-    # Add a dev user and configure all accounts
+    # Add a dev user and configure all user accounts
     && groupadd dev \
     && useradd dev -s /bin/bash -m -g dev -G root \
     && echo "dev:password" | chpasswd \
