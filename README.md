@@ -1,6 +1,6 @@
 ![PHP v5](https://img.shields.io/badge/PHP-v5.6.21-8892bf.svg) ![MIT License](https://img.shields.io/github/license/mkenney/docker-php-base.svg) ![Docker pulls](https://img.shields.io/docker/pulls/mkenney/php-base.svg) ![Docker stars](https://img.shields.io/docker/stars/mkenney/php-base.svg) ![Github issues](https://img.shields.io/github/issues-raw/mkenney/docker-php-base.svg)
 
-# Environment independent PHP cli
+# Portable PHP cli
 
 The [source repo](https://github.com/mkenney/docker-php-base) contains a `php` script that wraps executing a docker container to execute [php](https://php.net/). The current directory is mounted into `/src` in the container and a wrapper script executes php as a user who's `uid` and `gid` matches those properties on that directory. This way PHP runs as the directory owner/group instead of root or a random user.
 
