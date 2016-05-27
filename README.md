@@ -1,4 +1,6 @@
-![PHP v5](https://img.shields.io/badge/PHP-v5.6.21-8892bf.svg) ![MIT License](https://img.shields.io/github/license/mkenney/docker-php-base.svg) ![Docker pulls](https://img.shields.io/docker/pulls/mkenney/php-base.svg) ![Docker stars](https://img.shields.io/docker/stars/mkenney/php-base.svg) ![Github issues](https://img.shields.io/github/issues-raw/mkenney/docker-php-base.svg)
+![MIT License](https://img.shields.io/github/license/mkenney/docker-php-base.svg) ![Docker pulls](https://img.shields.io/docker/pulls/mkenney/php-base.svg) ![Docker stars](https://img.shields.io/docker/stars/mkenney/php-base.svg) ![Github issues](https://img.shields.io/github/issues-raw/mkenney/docker-php-base.svg)
+
+![PHP v5](https://img.shields.io/badge/PHP-v5.6.21-8892bf.svg)
 
 # Portable PHP cli
 
