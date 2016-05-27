@@ -1,3 +1,3 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 docker run --rm -t -v $(pwd):/src:rw -v $HOME/.ssh:/home/dev/.ssh:ro mkenney/php-base $@
