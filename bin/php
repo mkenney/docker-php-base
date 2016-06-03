@@ -1,3 +1,8 @@
 #!/usr/bin/env sh
 
-docker run --rm -t -v $(pwd):/src:rw -v $HOME/.ssh:/home/dev/.ssh:ro mkenney/php-base:php5 $@
+if [ "self-update" == "$1" ]; then
+    docker pull mkenney/php-base:php5
+    wget -nv -O $0 https://raw.githubusercontent.com/mkenney/docker-php-base/php5/bin/php
+else
+    docker run --rm -t -v $(pwd):/src:rw -v $HOME/.ssh:/home/dev/.ssh:ro mkenney/php-base:php5 $@
+fi

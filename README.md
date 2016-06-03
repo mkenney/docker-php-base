@@ -16,9 +16,9 @@ Because this runs out of a Docker container, all files and directories required 
 
 * [mkenney/php-base](https://hub.docker.com/r/mkenney/php-base/)
 
-Based on [PHP Offical](https://hub.docker.com/_/php/) (debian:jessie). This is simply a php CLI binary built with various tools, most notably Oracle OCI libraries because they're such a pain to install. It's also used as a base image for several other tools.
+Based on [PHP Offical](https://hub.docker.com/_/php/) (debian:jessie). This is simply a php CLI binary built with various tools, most notably Oracle `instantclient` and `OCI8` libraries and the `as-user` command wrapper because they're a pain to install or setup. It's also used as a base image for several other tools.
 
-The working directory is configured as `/src` and a default user is created and a wrapper script is provided that allows you to run entrypoint commands as the user and group that owns the mounted `/src` directory.
+The working directory is configured as `/src` and a default user is created and a wrapper script (`/as-user`) is provided that allows you to run entrypoint commands as the user and group that owns the mounted `/src` directory.
 
 # Tagged Dockerfiles
 
