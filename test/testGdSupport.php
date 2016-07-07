@@ -1,11 +1,10 @@
 <?php
+$pad_len = 40;
+echo str_pad('GD support enabled', $pad_len);
 if (function_exists("gd_info")) {
-    echo "GD is supported\n";
-
-    $gd = gd_info();
-
-    foreach ($gd as $k => $v) {
-        echo str_pad($k, 40);
+    echo "Yes\n";
+    foreach (gd_info() as $k => $v) {
+        echo str_pad($k, $pad_len);
         if ($v) {
             if (false !== stripos($k, 'version')) {
                 echo "{$v}\n";
@@ -31,5 +30,7 @@ if (function_exists("gd_info")) {
     }
 
 } else {
-    echo "GD is NOT supported\n";
+    echo "No\n";
+    exit(1);
 }
+exit(0);
