@@ -10,7 +10,7 @@
 
 * [php5](https://github.com/mkenney/docker-php-base/blob/php5/Dockerfile)
 
-  ![build status](https://travis-ci.org/mkenney/docker-php-base.svg?branch=php5) ![Image size](https://img.shields.io/badge/image size-329MB-blue.svg) ![PHP v5](https://img.shields.io/badge/PHP-v5.6.21-8892bf.svg)
+  ![build status](https://travis-ci.org/mkenney/docker-php-base.svg?branch=php5) ![Image size](https://img.shields.io/badge/image size-329MB-blue.svg) ![PHP v5](https://img.shields.io/badge/PHP-v5.6.23-8892bf.svg)
 
 ## About
 
