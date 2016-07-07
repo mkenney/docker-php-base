@@ -1,0 +1,25 @@
+sudo: required
+
+language: php
+
+branches:
+    only:
+        - master
+        - php7
+        - php5
+        - v0.0.2
+
+notifications:
+    slack:
+        secure: dI8Ei2CkxQ5UnuAhpmCkd1ULgjMeqwHSc1Vd7B9yErpLkjd/Lw/0WxnpLbkGZYnQ2Uzza73NB0eSs/7dhc0+OdsDVk28XXjOGjhPQyzOKD4Kb801cHLGHXVzlgYOkKCAKri8jNXqd3uxzOXkg2lrzAwDmS1UGb3bu1z4sfA9up5x1s6DZfF18lSewaX980oOIWwgEgaZlosy0A/dEldqlrnbkLRPVSCYnwpd4Fsavu/XUolFw4WV0kiOTI4l5dwNT234MJH+bTfC66r/0ammuM9dSDt5YFHHuekoOECv3yz0vkM19/2wXCV05eMt9SUPrd6ZkFARqF5f3FyWfV/589W3KmWujav8DAt6cd5lVbMvXONGt76XhXrMY5WlbFZDiNaaSp0GIpuFGIrhEEM5uRkUACT/8F43IVccRjvTOf/THDSjl/VApDPtRosmBVy0hj0gM/NDk2PnRd7VvXTkAsO049ezgHieKtWQTiV8eHadPuG4qQIuE9+t5rUXvXY5Z5dI9Q/eYsgUydaiwnqdAWjvgdMbg1uP8ZtZ/3jCURjywoPgHgwTawXXWwL94frCaj99ybnP17SA764clT3nzwwrkxVySyyLhpGNuKDK5SSijGT64nzG2LmeVGQZ+H3T5qOJeInBJWgQ32ZQ02lJAPjLTfz/1AIrRKHVQuQ2FjQ=
+
+services:
+    - docker
+
+before_install:
+    - docker build -t mkenney/php-base:travis-ci .
+    - cd test
+
+script:
+    - docker run --rm -ti -v $(pwd):/src:rw mkenney/php-base:travis-ci --version
+    - docker run --rm -ti -v $(pwd):/src:rw mkenney/php-base:travis-ci ./testGdSupport.php

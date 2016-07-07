@@ -51,7 +51,7 @@ RUN set -x \
 # Upgrade
 ##############################################################################
 
-    && mkdir -p /root/src \
+    && mkdir -p /src \
     && apt-get -qq update \
     && apt-get install -qqy apt-utils \
     && apt-get -qq upgrade \
@@ -115,6 +115,8 @@ RUN set -x \
     && apt-get install -qqy \
         libaio1 \
         libicu-dev \
+        libwebp-dev \
+        libxpm-dev \
         libxml2-dev \
         php-pear \
         php5-memcached \
@@ -135,7 +137,14 @@ RUN set -x \
     && curl -L http://pecl.php.net/get/xdebug-2.4.0RC2.tgz > /usr/src/php/ext/xdebug.tgz \
     && tar -xf /usr/src/php/ext/xdebug.tgz -C /usr/src/php/ext/ \
     && rm /usr/src/php/ext/xdebug.tgz \
-    && docker-php-ext-install \
+    && docker-php-ext-configure gd \
+        --enable-gd-jis-conv \
+        --with-freetype-dir=/usr/include/ \
+        --with-jpeg-dir=/usr/include/ \
+        --with-webp-dir=/usr/include/ \
+        --with-xpm-dir=/usr/include/ \
+    && NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1) \
+    && docker-php-ext-install -j$NPROC \
         gd \
         iconv \
         intl \
@@ -192,7 +201,10 @@ RUN set -x \
 
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && cp /container/as-user / \
-    && rm -rf /container
+    && rm -rf /container \
 
-ENTRYPOINT ["/as-user","php"]
+    # Setup wrapper script
+    && curl -o /run-as-user https://raw.githubusercontent.com/mkenney/docker-scripts/master/container/run-as-user \
+    && chmod 0755 /run-as-user
+
+ENTRYPOINT ["/run-as-user","php"]
