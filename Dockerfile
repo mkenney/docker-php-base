@@ -201,7 +201,10 @@ RUN set -x \
 
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && cp /container/as-user / \
-    && rm -rf /container
+    && rm -rf /container \
 
-ENTRYPOINT ["/as-user","php"]
+    # Setup wrapper script
+    && curl -o /run-as-user https://raw.githubusercontent.com/mkenney/docker-scripts/master/container/run-as-user \
+    && chmod 0755 /run-as-user
+
+ENTRYPOINT ["/run-as-user","php"]
