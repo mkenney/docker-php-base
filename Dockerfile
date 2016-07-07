@@ -115,6 +115,7 @@ RUN set -x \
     && apt-get install -qqy \
         libaio1 \
         libicu-dev \
+        libvpx-dev \
         libwebp-dev \
         libxpm-dev \
         libxml2-dev \
@@ -141,6 +142,7 @@ RUN set -x \
         --enable-gd-jis-conv \
         --with-freetype-dir=/usr/include/ \
         --with-jpeg-dir=/usr/include/ \
+        --with-vpx-dir=/usr/include/ \
         --with-webp-dir=/usr/include/ \
         --with-xpm-dir=/usr/include/ \
     && NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1) \
