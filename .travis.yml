@@ -3,7 +3,7 @@ env:
 
 sudo: required
 
-language: php
+language: sh
 
 branches:
     only:
