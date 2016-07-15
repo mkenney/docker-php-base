@@ -111,7 +111,12 @@ RUN set -x \
     # Packages
     # - libaio1 is required for oci8
     # - libicu-dev is required for intl
+    # - libmemcached-dev is required for memcached
+    # - libvpx-dev is required for GD
+    # - libwebp-dev is required for GD
+    # - libxpm-dev is required for GD
     # - libxml2-dev is required for soap
+    # - php-pear is just good stuff
     && apt-get install -qqy \
         libaio1 \
         libicu-dev \
@@ -120,8 +125,6 @@ RUN set -x \
         libxpm-dev \
         libxml2-dev \
         php-pear \
-        php5-memcached \
-        php5-redis \
 
     # Configure and install oci8
     # Don't poke it or it'll break
