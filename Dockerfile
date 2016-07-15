@@ -138,9 +138,10 @@ RUN set -x \
     && echo "extension=oci8.so" > $PHP_INI_DIR/oci8.ini \
 
     # Extensions
-    && docker-php-source extract
+    && docker-php-source extract \
     && curl -L http://pecl.php.net/get/xdebug-2.4.0RC2.tgz > /usr/src/php/ext/xdebug.tgz \
     && tar -xf /usr/src/php/ext/xdebug.tgz -C /usr/src/php/ext/ \
+    && echo xdebug-2.4.0RC2 >> /usr/src/php-available-exts \
     && rm /usr/src/php/ext/xdebug.tgz \
     && docker-php-ext-configure gd \
         --enable-gd-jis-conv \
