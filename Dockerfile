@@ -111,7 +111,12 @@ RUN set -x \
     # Packages
     # - libaio1 is required for oci8
     # - libicu-dev is required for intl
+    # - libmemcached-dev is required for memcached
+    # - libvpx-dev is required for GD
+    # - libwebp-dev is required for GD
+    # - libxpm-dev is required for GD
     # - libxml2-dev is required for soap
+    # - php-pear is just good stuff
     && apt-get install -qqy \
         libaio1 \
         libicu-dev \
@@ -120,8 +125,6 @@ RUN set -x \
         libxpm-dev \
         libxml2-dev \
         php-pear \
-        php5-memcached \
-        php5-redis \
 
     # Configure and install oci8
     # Don't poke it or it'll break
@@ -135,8 +138,10 @@ RUN set -x \
     && echo "extension=oci8.so" > $PHP_INI_DIR/oci8.ini \
 
     # Extensions
+    && docker-php-source extract \
     && curl -L http://pecl.php.net/get/xdebug-2.4.0RC2.tgz > /usr/src/php/ext/xdebug.tgz \
     && tar -xf /usr/src/php/ext/xdebug.tgz -C /usr/src/php/ext/ \
+    && echo xdebug-2.4.0RC2 >> /usr/src/php-available-exts \
     && rm /usr/src/php/ext/xdebug.tgz \
     && docker-php-ext-configure gd \
         --enable-gd-jis-conv \
@@ -203,6 +208,7 @@ RUN set -x \
 
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /usr/src/php \
     && rm -rf /container \
 
     # Setup wrapper script
