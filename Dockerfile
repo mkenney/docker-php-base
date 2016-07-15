@@ -138,7 +138,7 @@ RUN set -x \
     && echo "extension=oci8.so" > $PHP_INI_DIR/oci8.ini \
 
     # Extensions
-    && docker-php-src extract
+    && docker-php-source extract
     && curl -L http://pecl.php.net/get/xdebug-2.4.0RC2.tgz > /usr/src/php/ext/xdebug.tgz \
     && tar -xf /usr/src/php/ext/xdebug.tgz -C /usr/src/php/ext/ \
     && rm /usr/src/php/ext/xdebug.tgz \
