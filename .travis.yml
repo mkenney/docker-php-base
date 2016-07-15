@@ -10,7 +10,7 @@ branches:
         - master
         - php7
         - php5
-        - v0.0.2
+        - continuous-deployment
 
 notifications:
     slack:
