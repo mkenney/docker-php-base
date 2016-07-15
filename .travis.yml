@@ -1,3 +1,6 @@
+env:
+    secure: agI/y33bmRZ/1lxoi0jtZVe34Mt5oCkNfd5Dfgo+HERZkHWkkHKCKKUMpFRGsEy9DqDuM50czyGQ2DTFMUCUMXuMMzizyxPdRqs+MqbADPIs+uybVavIjCl5vZys2WZl+7ogomJpquaf1A51xCRNnrICDbiFfpyI0AHRaxP13InycGUjg9OMuccINAoO7g+L+cyyY9iNedLsFr4DlOkw5365CkXS81ht6aKepus/13f7UnMPq3zItGzuZphTzHrFxfZKj8eJT87rzllCRhsRT48ENv8GQZxKVx37LAoIJdQWV/WHkhw3xzw9bJQ2PKCgtJkr9gmMu41GO8joJcw8Msxqg661AQHJlL/fWcPBF5itpbiEK5NEgUt2GGg8lEvTrzqbHZN2C1JtDkphY+JtU1hUUsxML2mYXcpKuN5wM7j1QaJ/FFOv6M66+Q36+3VWdHmSu0bzHAYjqjSRWugRwLzvlcO0WJxfmK2igchZQqoZt8aLuWz5OoUcuCRQx4Xt7NLTfQkSfbSt9lj3bcfB/mJ7MFhoJ68ZpYPiipQFrb2hY+FgWujd2QMNbutxjciQ8ZaF5JIFoZynqLhCydeoqfmJAk3RoV2tLeMQuFcYqeZBpIwmFZGhk/nu1JeJ4o+qvfwI7EZE41CzGvK0+L2u9V14SifCV+H4J24cU9YBnM8=
+
 sudo: required
 
 language: php
@@ -23,3 +26,7 @@ before_install:
 script:
     - docker run --rm -ti -v $(pwd):/src:rw mkenney/php-base:travis-ci --version
     - docker run --rm -ti -v $(pwd):/src:rw mkenney/php-base:travis-ci ./testGdSupport.php
+
+after_success:
+    - cd ../ci
+    - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then sh ./deploy.sh; fi
