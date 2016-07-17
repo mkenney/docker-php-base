@@ -24,8 +24,9 @@ before_install:
     - cd test
 
 script:
-    - docker run --rm -ti -v $(pwd):/src:rw mkenney/php-base:travis-ci --version
     - docker run --rm -ti -v $(pwd):/src:rw mkenney/php-base:travis-ci ./testGdSupport.php
+    - docker run --rm -ti -v $(pwd):/src:rw mkenney/php-base:travis-ci ./testOci8Support.php
+    - docker run --rm -ti -v $(pwd):/src:rw mkenney/php-base:travis-ci --version
 
 after_success:
     - cd ../ci

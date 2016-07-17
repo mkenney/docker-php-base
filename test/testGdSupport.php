@@ -1,4 +1,7 @@
 <?php
+
+echo "\nTesting GD support\n\n";
+
 $pad_len = 40;
 echo str_pad('GD support enabled', $pad_len);
 if (function_exists("gd_info")) {
@@ -24,6 +27,7 @@ if (function_exists("gd_info")) {
                 || false !== stripos($k, 'webp')
                 || false !== stripos($k, 'jis')
             ) {
+                echo "    {$k} support is a build requirement.\n";
                 exit(1);
             }
         }
@@ -31,6 +35,7 @@ if (function_exists("gd_info")) {
 
 } else {
     echo "No\n";
+    echo "    GD support is a build requirement.\n";
     exit(1);
 }
 exit(0);
