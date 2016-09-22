@@ -193,7 +193,7 @@ RUN set -x \
 
     # Add a dev user and configure all user accounts
     && groupadd dev \
-    && useradd dev -s /bin/bash -m -g dev -G root \
+    && useradd dev -s /bin/bash -m -g dev \
     && echo "dev:password" | chpasswd \
     && echo "dev ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers \
     && rsync -a /root/ /home/dev/ \
