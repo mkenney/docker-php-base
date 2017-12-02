@@ -1,17 +1,11 @@
 FROM php:5-cli
 
-MAINTAINER Michael Kenney <mkenney@webbedlam.com>
-
 ##############################################################################
 # Setup
 ##############################################################################
 
-ENV DEBIAN_FRONTEND noninteractive
-ENV TERM xterm
-USER root
-
-# server_env
-ENV server_env dev
+ENV TERM=xterm \
+    DEBIAN_FRONTEND=noninteractive
 
 # Set up the application directory
 VOLUME ["/src"]
@@ -21,25 +15,24 @@ WORKDIR /src
 # Configurations / dependencies
 ##############################################################################
 
-ENV PATH /root/bin:$PATH
-
-ENV UTF8_LOCALE en_US
-ENV TIMEZONE 'America/Denver'
-ENV ORACLE_VERSION_LONG 11.2.0.3.0-2
-ENV ORACLE_VERSION_SHORT 11.2
-ENV ORACLE_HOME /usr/lib/oracle/${ORACLE_VERSION_SHORT}/client64
-ENV LD_LIBRARY_PATH ${ORACLE_HOME}/lib
-ENV TNS_ADMIN /home/dev/.oracle/network/admin
-ENV CFLAGS "-I/usr/include/oracle/${ORACLE_VERSION_SHORT}/client64/"
-ENV NLS_LANG American_America.AL32UTF8
+ENV PATH=/root/bin:$PATH
+ENV UTF8_LOCALE=en_US
+ENV TIMEZONE='America/Denver'
+ENV ORACLE_VERSION_LONG=11.2.0.3.0-2
+ENV ORACLE_VERSION_SHORT=11.2
+ENV ORACLE_HOME=/oracle/product/latest
+ENV LD_LIBRARY_PATH=$ORACLE_HOME/lib
+ENV TNS_ADMIN=$ORACLE_HOME/network/admin
+ENV CFLAGS="-I/usr/include/oracle/${ORACLE_VERSION_SHORT}/client64/"
+ENV NLS_LANG=American_America.AL32UTF8
 
 # PHP ini directory
 ENV PHP_INI_DIR /usr/local/etc/php/conf.d
 
 # Locale environment variables
-ENV LANG C.UTF-8
-ENV LANGUAGE C.UTF-8
-ENV LC_ALL C.UTF-8
+ENV LANG=C.UTF-8  \
+    LANGUAGE=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
 # Includes dotfiles and Oracle instantclient debs created using `alien`
 COPY container /container
@@ -101,8 +94,8 @@ RUN set -x \
     && dpkg -i oracle-instantclient${ORACLE_VERSION_SHORT}-devel_${ORACLE_VERSION_LONG}_amd64.deb \
     && dpkg -i oracle-instantclient${ORACLE_VERSION_SHORT}-sqlplus_${ORACLE_VERSION_LONG}_amd64.deb \
     && mkdir -p /oracle/product \
-    && ln -s $ORACLE_HOME /oracle/product/latest \
-    && mkdir -p /oracle/product/latest/network/admin
+    && ln -s /usr/lib/oracle/${ORACLE_VERSION_SHORT}/client64 $ORACLE_HOME \
+    && mkdir -p $ORACLE_HOME/network/admin
 
 ##############################################################################
 # PHP
@@ -130,8 +123,9 @@ RUN set -x \
     # Configure and install oci8
     # Don't poke it or it'll break
 RUN set -x \
-    && cp /usr/include/oracle/${ORACLE_VERSION_SHORT}/client64/* /oracle/product/latest/ \
-    && cd /oracle/product/latest \
+    && mkdir -p $ORACLE_HOME \
+    && cp /usr/include/oracle/${ORACLE_VERSION_SHORT}/client64/* $ORACLE_HOME \
+    && cd $ORACLE_HOME \
     && ln -s lib/libnnz11.so       libnnz.so \
     && ln -s lib/libnnz11.so       libnnz11.so \
     && ln -s lib/libclntsh.so.11.1 libclntsh.so \
@@ -215,10 +209,6 @@ RUN set -x \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /usr/src/php \
-    && rm -rf /container \
+    && rm -rf /container
 
-    # Setup wrapper script
-    && curl -o /run-as-user https://raw.githubusercontent.com/mkenney/docker-scripts/master/container/run-as-user \
-    && chmod 0755 /run-as-user
-
-ENTRYPOINT ["/run-as-user","php"]
+ENTRYPOINT ["php"]

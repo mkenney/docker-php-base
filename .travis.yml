@@ -30,4 +30,4 @@ script:
 
 after_success:
     - cd ../ci
-    - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then sh ./deploy.sh; fi
+    - sh ./deploy.sh
