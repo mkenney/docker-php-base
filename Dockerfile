@@ -74,6 +74,7 @@ RUN set -x \
         less \
         libfreetype6-dev \
         libjpeg62-turbo-dev \
+        libmcrypt-dev \
         libpng-dev \
         libbz2-dev \
         rsync \
